@@ -1,22 +1,10 @@
-import psycopg
-import config
-
-
-def connect():
-    return psycopg.connect(
-        host=config.DB_HOST,
-        dbname=config.DB_NAME,
-        user=config.DB_USER,
-        password=config.DB_PASSWORD,
-        port=config.DB_PORT
-    )
-
+from connect import get_connection
 
 def add_contact():
     name = input("Enter name: ")
     phone = input("Enter phone: ")
 
-    conn = connect()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
@@ -28,11 +16,8 @@ def add_contact():
     cur.close()
     conn.close()
 
-    print("Contact added!")
-
-
 def show_all():
-    conn = connect()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM phonebook")
@@ -44,16 +29,15 @@ def show_all():
     cur.close()
     conn.close()
 
-
 def search_contact():
-    name = input("Enter name to search: ")
+    value = input("Enter name or phone: ")
 
-    conn = connect()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT * FROM phonebook WHERE name ILIKE %s",
-        (f"%{name}%",)
+        "SELECT * FROM phonebook WHERE name ILIKE %s OR phone LIKE %s",
+        (f"%{value}%", f"%{value}%")
     )
 
     rows = cur.fetchall()
@@ -64,25 +48,37 @@ def search_contact():
     cur.close()
     conn.close()
 
+def update_contact():
+    old_name = input("Enter name to update: ")
+    new_name = input("New name: ")
+    new_phone = input("New phone: ")
 
-def delete_contact():
-    name = input("Enter name to delete: ")
-
-    conn = connect()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        "DELETE FROM phonebook WHERE name = %s",
-        (name,)
+        "UPDATE phonebook SET name=%s, phone=%s WHERE name=%s",
+        (new_name, new_phone, old_name)
     )
 
     conn.commit()
-
     cur.close()
     conn.close()
 
-    print("Contact deleted!")
+def delete_contact():
+    value = input("Enter name or phone to delete: ")
 
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM phonebook WHERE name=%s OR phone=%s",
+        (value, value)
+    )
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 def menu():
     while True:
@@ -90,8 +86,9 @@ def menu():
         print("1. Add contact")
         print("2. Show all contacts")
         print("3. Search contact")
-        print("4. Delete contact")
-        print("5. Exit")
+        print("4. Update contact")
+        print("5. Delete contact")
+        print("6. Exit")
 
         choice = input("Choose: ")
 
@@ -102,11 +99,12 @@ def menu():
         elif choice == "3":
             search_contact()
         elif choice == "4":
-            delete_contact()
+            update_contact()
         elif choice == "5":
+            delete_contact()
+        elif choice == "6":
             break
         else:
             print("Invalid choice!")
-
 
 menu()
