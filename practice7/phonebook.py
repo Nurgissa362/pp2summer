@@ -1,15 +1,16 @@
 from connect import get_connection
 
 def add_contact():
-    name = input("Enter name: ")
+    first_name = input("Enter first name: ")
+    last_name = input("Enter last name: ")
     phone = input("Enter phone: ")
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        "INSERT INTO phonebook (name, phone) VALUES (%s, %s)",
-        (name, phone)
+        "INSERT INTO phonebook (first_name, last_name, phone) VALUES (%s, %s, %s)",
+        (first_name, last_name, phone)
     )
 
     conn.commit()
@@ -36,9 +37,14 @@ def search_contact():
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT * FROM phonebook WHERE name ILIKE %s OR phone LIKE %s",
-        (f"%{value}%", f"%{value}%")
-    )
+    """
+    SELECT * FROM phonebook
+    WHERE first_name ILIKE %s
+       OR last_name ILIKE %s
+       OR phone LIKE %s
+    """,
+    (f"%{value}%", f"%{value}%", f"%{value}%")
+)
 
     rows = cur.fetchall()
 
@@ -49,16 +55,21 @@ def search_contact():
     conn.close()
 
 def update_contact():
-    old_name = input("Enter name to update: ")
-    new_name = input("New name: ")
+    old_first_name = input("Enter first name to update: ")
+    new_first_name = input("New first name: ")
+    new_last_name = input("New last name: ")
     new_phone = input("New phone: ")
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute(
-        "UPDATE phonebook SET name=%s, phone=%s WHERE name=%s",
-        (new_name, new_phone, old_name)
+        """
+        UPDATE phonebook
+        SET first_name=%s, last_name=%s, phone=%s
+        WHERE first_name=%s
+        """,
+        (new_first_name, new_last_name, new_phone, old_first_name)
     )
 
     conn.commit()
@@ -72,10 +83,14 @@ def delete_contact():
     cur = conn.cursor()
 
     cur.execute(
-        "DELETE FROM phonebook WHERE name=%s OR phone=%s",
-        (value, value)
-    )
-
+    """
+    DELETE FROM phonebook
+    WHERE first_name=%s
+       OR last_name=%s
+       OR phone=%s
+    """,
+    (value, value, value)
+)
     conn.commit()
     cur.close()
     conn.close()
