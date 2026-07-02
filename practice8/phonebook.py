@@ -82,19 +82,64 @@ def delete_by_name(first_name, last_name):
 if __name__ == "__main__":
     setup_database()
 
-    upsert_contact("Ali",   "Tursunov",  "+77001234567")
-    upsert_contact("Zara",  "Bekova",    "+77009876543")
-    upsert_contact("Dias",  "Seitkali",  "+77771112233")
-    upsert_contact("Ali",   "Tursunov",  "+77000000001")
+    while True:
+        print("""
+1. Add or Update Contact
+2. Search Contact
+3. Show Contacts
+4. Bulk Insert
+5. Delete by Name
+6. Delete by Phone
+7. Exit
+""")
 
-    invalid = bulk_insert_contacts(
-        names=["Madi Aliev", "BadName", "Kamila Ospanova"],
-        phones=["+77055556677", "not-a-phone", "+77013334455"],
-    )
-    print("Invalid:", invalid)
+        choice = input("Choose: ")
 
-    print(search_contacts("ali"))
-    print(get_contacts_page(page=1, page_size=3))
+        if choice == "1":
+            first = input("First name: ")
+            last = input("Last name: ")
+            phone = input("Phone: ")
+            upsert_contact(first, last, phone)
+            print("Done!")
 
-    delete_by_phone("+77009876543")
-    delete_by_name("Dias", "Seitkali")
+        elif choice == "2":
+            pattern = input("Search: ")
+            result = search_contacts(pattern)
+            for row in result:
+                print(row)
+
+        elif choice == "3":
+            page = int(input("Page: "))
+            size = int(input("Page size: "))
+            result = get_contacts_page(page, size)
+            for row in result:
+                print(row)
+
+        elif choice == "4":
+            count = int(input("How many contacts: "))
+            names = []
+            phones = []
+
+            for i in range(count):
+                names.append(input("Full name: "))
+                phones.append(input("Phone: "))
+
+            invalid = bulk_insert_contacts(names, phones)
+            print("Invalid:", invalid)
+
+        elif choice == "5":
+            first = input("First name: ")
+            last = input("Last name: ")
+            delete_by_name(first, last)
+            print("Deleted!")
+
+        elif choice == "6":
+            phone = input("Phone: ")
+            delete_by_phone(phone)
+            print("Deleted!")
+
+        elif choice == "7":
+            break
+
+        else:
+            print("Wrong choice!")
